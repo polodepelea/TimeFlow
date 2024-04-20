@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TimeFlow</string>
+    <string name="title_activity_events">EventsActivity</string>
+</resources>

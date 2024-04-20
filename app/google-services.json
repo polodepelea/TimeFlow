@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "603141839511",
+    "project_id": "timeflow-f0cde",
+    "storage_bucket": "timeflow-f0cde.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:603141839511:android:c6b407c186be6792bca7d2",
+        "android_client_info": {
+          "package_name": "com.example.timeflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcR0QxDZUVIiAWPswmmz_KWE-9XqXFJMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
