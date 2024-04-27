@@ -3,11 +3,14 @@ package com.example.timeflow.HelpersClass;
 public class Event {
     private String eventName;
     private String eventTime;
+    private String eventDate;
+
 
     public Event() {
     }
 
-    public Event(String eventName, String eventTime) {
+    public Event(String eventDate, String eventTime,String eventName) {
+        this.eventDate = eventDate;
         this.eventName = eventName;
         this.eventTime = eventTime;
     }
@@ -27,5 +30,9 @@ public class Event {
     public void setEventTime(String eventTime) {
         this.eventTime = eventTime;
     }
+
+    public String getEventDate() {return eventDate;}
+
+    public void setEventDate(String eventDate) {this.eventDate = eventDate;}
 }
 

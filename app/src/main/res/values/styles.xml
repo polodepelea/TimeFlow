@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TimePicker" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:colorAccent">#8692f7</item>
+        <item name="android:buttonBarButtonStyle">@style/MyButtonBarButtonStyle</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/MyButtonBarNegativeButtonStyle</item>
+    </style>
+
+    <style name="MyButtonBarButtonStyle" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">#8692f7</item>
+    </style>
+
+    <style name="MyButtonBarNegativeButtonStyle" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">#8692f7</item>
+    </style>
+
+
+
+</resources>
