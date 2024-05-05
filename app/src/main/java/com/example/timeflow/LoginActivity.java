@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -31,6 +32,9 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         String userIdprefs = sharedPreferences.getString("userId", "");
@@ -69,9 +73,9 @@ public class LoginActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()) {
                     Toast.makeText(LoginActivity.this, "Email is already in use", Toast.LENGTH_SHORT).show();
                 } else {
-                    Login helperClass = new Login(email, password);
+                    Login login = new Login(email, password);
                     String userId = reference.push().getKey();
-                    reference.child(userId).setValue(helperClass);
+                    reference.child(userId).setValue(login);
 
                     SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();

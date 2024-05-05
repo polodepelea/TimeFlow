@@ -1,6 +1,8 @@
 package com.example.timeflow.HelpersClass;
 
-public class Event {
+import java.io.Serializable;
+
+public class Event implements Serializable {
     private String eventName;
     private String eventTime;
     private String eventDate;

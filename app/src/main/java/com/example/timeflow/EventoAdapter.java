@@ -17,17 +17,25 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
 
     private Context mContext;
     private List<Event> mEvents;
+    private OnItemClickListener mListener;
 
-    public EventoAdapter(Context context, List<Event> events) {
+    // Interfaz para manejar clics en los elementos del RecyclerView
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    // Constructor del adaptador
+    public EventoAdapter(Context context, List<Event> events, OnItemClickListener listener) {
         mContext = context;
         mEvents = events;
+        mListener = listener;
     }
 
     @NonNull
     @Override
     public EventoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_event, parent, false);
-        return new EventoViewHolder(view);
+        return new EventoViewHolder(view, mListener);
     }
 
     @Override
@@ -43,18 +51,31 @@ public class EventoAdapter extends RecyclerView.Adapter<EventoAdapter.EventoView
         return mEvents.size();
     }
 
+    // ViewHolder que representa cada elemento de la vista
     public static class EventoViewHolder extends RecyclerView.ViewHolder {
         TextView eventName;
         TextView eventTime;
         TextView eventDate;
 
-
-        public EventoViewHolder(@NonNull View itemView) {
+        public EventoViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
             eventName = itemView.findViewById(R.id.text_event_name);
             eventDate = itemView.findViewById(R.id.text_event_date);
             eventTime = itemView.findViewById(R.id.text_event_time);
 
+            // Configura el clic en el elemento de la vista
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            listener.onItemClick(position);
+                        }
+                    }
+                }
+            });
         }
     }
 }
+
