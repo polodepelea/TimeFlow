@@ -2,25 +2,17 @@ package com.example.timeflow;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.Window;
-import android.view.WindowManager;
 
 import com.example.timeflow.HelpersClass.Event;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,11 +24,13 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-public class EventsActivity extends AppCompatActivity implements EventoAdapter.OnItemClickListener {
+public class EventsActivity extends AppCompatActivity implements EventsAdapter.OnItemClickListener {
 
     private RecyclerView mRecyclerView;
-    private EventoAdapter mAdapter;
+    private EventsAdapter mAdapter;
     private List<Event> mEventos;
 
     String userId;
@@ -46,6 +40,7 @@ public class EventsActivity extends AppCompatActivity implements EventoAdapter.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_events);
 
+
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         userId = sharedPreferences.getString("userId", "");
 
@@ -53,12 +48,16 @@ public class EventsActivity extends AppCompatActivity implements EventoAdapter.O
             userId = getIntent().getStringExtra("userId");
         }
 
+        Intent serviceIntent = new Intent(this, EventNotificationService.class);
+        startService(serviceIntent);
+
+
         mRecyclerView = findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mEventos = new ArrayList<>();
-        mAdapter = new EventoAdapter(this, mEventos, this);
+        mAdapter = new EventsAdapter(this, mEventos, this);
         mRecyclerView.setAdapter(mAdapter);
 
         FloatingActionButton calendarButton = findViewById(R.id.calendarButton);
@@ -71,12 +70,33 @@ public class EventsActivity extends AppCompatActivity implements EventoAdapter.O
             userRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    mEventos.clear();
+                    TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
+
                     for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
                         Event event = eventSnapshot.getValue(Event.class);
-                        mEventos.add(event);
+                        String fechaEvento = event.getEventDate();
+
+                        if (!eventosPorFecha.containsKey(fechaEvento)) {
+                            eventosPorFecha.put(fechaEvento, new ArrayList<>());
+                        }
+
+                        eventosPorFecha.get(fechaEvento).add(event);
                     }
+
+                    mEventos.clear();
+
+                    for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
+                        List<Event> eventosEnFecha = entry.getValue();
+                        for (Event evento : eventosEnFecha) {
+                            mEventos.add(evento);
+                        }
+                    }
+
                     mAdapter.notifyDataSetChanged();
+
+                    if (mRecyclerView != null) {
+                        mAdapter.scrollToBottom(mRecyclerView);
+                    }
                 }
 
                 @Override
@@ -84,6 +104,7 @@ public class EventsActivity extends AppCompatActivity implements EventoAdapter.O
                 }
             });
         }
+
     }
 
     @Override
@@ -93,8 +114,6 @@ public class EventsActivity extends AppCompatActivity implements EventoAdapter.O
         intent.putExtra("clickedEvent", clickedEvent);
         startActivity(intent);
     }
-
-
 
 
     @Override

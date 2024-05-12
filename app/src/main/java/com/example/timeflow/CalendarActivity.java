@@ -33,7 +33,7 @@ import java.util.Calendar;
 import java.util.UUID;
 
 public class CalendarActivity extends AppCompatActivity {
-    private Button buttonHour,saveButton,deleteButton;
+    private Button buttonHour,saveButton,deleteButton,editButton;
     private EditText hourText,dateText,nameText;
     String userId;
     String eventId;
@@ -53,13 +53,15 @@ public class CalendarActivity extends AppCompatActivity {
 
         deleteButton = findViewById(R.id.buttonDelete);
         saveButton = findViewById(R.id.saveButton);
+        editButton = findViewById(R.id.editButton);
         buttonHour = findViewById(R.id.buttonHour);
 
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("clickedEvent")) {
             deleteButton.setVisibility(View.VISIBLE);
-            saveButton.setText("Edit Event");
+            saveButton.setVisibility(View.INVISIBLE);
+            editButton.setVisibility(View.VISIBLE);
 
             clickedEvent = (Event) intent.getSerializableExtra("clickedEvent");
 
@@ -70,13 +72,16 @@ public class CalendarActivity extends AppCompatActivity {
 
         } else {
             deleteButton.setVisibility(View.INVISIBLE);
-            saveButton.setText("Save Event");
+            saveButton.setVisibility(View.VISIBLE);
+            editButton.setVisibility(View.INVISIBLE);
 
         }
 
         saveButton.setOnClickListener(v -> onSaveButtonClick());
         buttonHour.setOnClickListener(v -> onHourButtonClick());
         deleteButton.setOnClickListener(v -> deleteEvent());
+        editButton.setOnClickListener(v -> editEvent());
+
 
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -153,7 +158,7 @@ public class CalendarActivity extends AppCompatActivity {
                     for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
                         eventSnapshot.getRef().removeValue()
                                 .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(CalendarActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+                                    finish();
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(CalendarActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show();
@@ -170,6 +175,49 @@ public class CalendarActivity extends AppCompatActivity {
                 Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void editEvent() {
+        final String newDate = dateText.getText().toString();
+        final String newHour = hourText.getText().toString();
+        final String newName = nameText.getText().toString();
+
+        if (!newDate.isEmpty() && !newHour.isEmpty() && !newName.isEmpty()) {
+            if (newName.length() <= 11) {
+                DatabaseReference userEventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+
+                userEventsRef.orderByChild("eventName").equalTo(clickedEvent.getEventName()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
+                                eventSnapshot.getRef().child("eventDate").setValue(newDate);
+                                eventSnapshot.getRef().child("eventTime").setValue(newHour);
+                                eventSnapshot.getRef().child("eventName").setValue(newName)
+                                        .addOnSuccessListener(aVoid -> {
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(CalendarActivity.this, "Error editing event", Toast.LENGTH_SHORT).show();
+                                        });
+                                break;
+                            }
+                        } else {
+                            Toast.makeText(CalendarActivity.this, "No event found to edit", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(CalendarActivity.this, "Event name must be 11 characters or less", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(CalendarActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
