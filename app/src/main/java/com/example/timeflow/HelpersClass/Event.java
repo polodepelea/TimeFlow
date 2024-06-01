@@ -11,7 +11,7 @@ public class Event implements Serializable {
     public Event() {
     }
 
-    public Event(String eventDate, String eventTime,String eventName) {
+    public Event(String eventDate, String eventTime, String eventName) {
         this.eventDate = eventDate;
         this.eventName = eventName;
         this.eventTime = eventTime;
@@ -33,8 +33,12 @@ public class Event implements Serializable {
         this.eventTime = eventTime;
     }
 
-    public String getEventDate() {return eventDate;}
+    public String getEventDate() {
+        return eventDate;
+    }
 
-    public void setEventDate(String eventDate) {this.eventDate = eventDate;}
+    public void setEventDate(String eventDate) {
+        this.eventDate = eventDate;
+    }
 }
 

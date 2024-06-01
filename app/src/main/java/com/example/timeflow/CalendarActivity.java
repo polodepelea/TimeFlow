@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.timeflow.HelpersClass.Event;
@@ -33,10 +34,13 @@ import java.util.Calendar;
 import java.util.UUID;
 
 public class CalendarActivity extends AppCompatActivity {
-    private Button buttonHour,saveButton,deleteButton,editButton;
-    private EditText hourText,dateText,nameText;
+    private Button buttonHour, saveButton, deleteButton, editButton;
+    private EditText hourText, dateText, nameText;
     String userId;
     String eventId;
+
+    private ProgressBar progressBar;
+
 
     Event clickedEvent;
 
@@ -45,6 +49,11 @@ public class CalendarActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+
+        progressBar = findViewById(R.id.progressBar2);
+        hideProgressBar();
+
+
 
 
         dateText = findViewById(R.id.dateText);
@@ -68,6 +77,7 @@ public class CalendarActivity extends AppCompatActivity {
             dateText.setText(clickedEvent.getEventDate());
             hourText.setText(clickedEvent.getEventTime());
             nameText.setText(clickedEvent.getEventName());
+            nameText.setEnabled(false);
 
 
         } else {
@@ -83,7 +93,6 @@ public class CalendarActivity extends AppCompatActivity {
         editButton.setOnClickListener(v -> editEvent());
 
 
-
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         userId = sharedPreferences.getString("userId", "");
 
@@ -92,23 +101,6 @@ public class CalendarActivity extends AppCompatActivity {
         }
 
         getSelectedDate();
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-            if(R.id.logout == item.getItemId()){
-                logout();
-                return true;
-            }
-            return super.onOptionsItemSelected(item);
     }
 
     public void logout() {
@@ -129,7 +121,7 @@ public class CalendarActivity extends AppCompatActivity {
             String formattedMonth = String.format("%02d", month + 1);
             String formattedDayOfMonth = String.format("%02d", dayOfMonth);
 
-            String selectedDate = year + "-" + (formattedMonth ) + "-" + formattedDayOfMonth;
+            String selectedDate = year + "-" + (formattedMonth) + "-" + formattedDayOfMonth;
             dateText.setText(selectedDate);
         });
     }
@@ -140,7 +132,7 @@ public class CalendarActivity extends AppCompatActivity {
         int hours = c.get(Calendar.DAY_OF_MONTH);
         int minutes = c.get(Calendar.MINUTE);
 
-        TimePickerDialog timePickerDialog = new TimePickerDialog(this,R.style.TimePicker,(view, hourOfDay, minute) -> {
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, R.style.TimePicker, (view, hourOfDay, minute) -> {
             String formattedMinute = String.format("%02d", minute);
             hourText.setText(hourOfDay + ":" + formattedMinute);
         }, hours, minutes, false);
@@ -149,6 +141,8 @@ public class CalendarActivity extends AppCompatActivity {
 
 
     public void deleteEvent() {
+        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+
         DatabaseReference userEventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
 
         userEventsRef.orderByChild("eventName").equalTo(clickedEvent.getEventName()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -159,70 +153,76 @@ public class CalendarActivity extends AppCompatActivity {
                         eventSnapshot.getRef().removeValue()
                                 .addOnSuccessListener(aVoid -> {
                                     finish();
+                                    hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(CalendarActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show();
+                                    hideProgressBar(); // Oculta la ProgressBar en caso de error
                                 });
                         break;
                     }
                 } else {
                     Toast.makeText(CalendarActivity.this, "No event found to delete", Toast.LENGTH_SHORT).show();
+                    hideProgressBar(); // Oculta la ProgressBar si no hay eventos para eliminar
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
             }
         });
     }
 
     public void editEvent() {
+        showProgressBar();
+
         final String newDate = dateText.getText().toString();
         final String newHour = hourText.getText().toString();
-        final String newName = nameText.getText().toString();
 
-        if (!newDate.isEmpty() && !newHour.isEmpty() && !newName.isEmpty()) {
-            if (newName.length() <= 11) {
-                DatabaseReference userEventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+        if (!newDate.isEmpty() && !newHour.isEmpty()) {
+            DatabaseReference userEventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
 
-                userEventsRef.orderByChild("eventName").equalTo(clickedEvent.getEventName()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
-                                eventSnapshot.getRef().child("eventDate").setValue(newDate);
-                                eventSnapshot.getRef().child("eventTime").setValue(newHour);
-                                eventSnapshot.getRef().child("eventName").setValue(newName)
-                                        .addOnSuccessListener(aVoid -> {
-                                            finish();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Toast.makeText(CalendarActivity.this, "Error editing event", Toast.LENGTH_SHORT).show();
-                                        });
-                                break;
-                            }
-                        } else {
-                            Toast.makeText(CalendarActivity.this, "No event found to edit", Toast.LENGTH_SHORT).show();
+            userEventsRef.orderByChild("eventName").equalTo(clickedEvent.getEventName()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
+                            eventSnapshot.getRef().child("eventDate").setValue(newDate);
+                            eventSnapshot.getRef().child("eventTime").setValue(newHour)
+                                    .addOnSuccessListener(aVoid -> {
+                                        finish();
+                                        hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(CalendarActivity.this, "Error editing event", Toast.LENGTH_SHORT).show();
+                                        hideProgressBar(); // Oculta la ProgressBar en caso de error
+                                    });
+                            break;
                         }
+                    } else {
+                        Toast.makeText(CalendarActivity.this, "No event found to edit", Toast.LENGTH_SHORT).show();
+                        hideProgressBar(); // Oculta la ProgressBar si no se encuentra el evento para editar
                     }
+                }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                Toast.makeText(CalendarActivity.this, "Event name must be 11 characters or less", Toast.LENGTH_SHORT).show();
-            }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                    hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                }
+            });
         } else {
             Toast.makeText(CalendarActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            hideProgressBar(); // Oculta la ProgressBar si no se completan todos los campos
         }
     }
 
 
-
     private void onSaveButtonClick() {
+        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+
         String eventDate = dateText.getText().toString();
         String eventTime = hourText.getText().toString();
         String eventName = nameText.getText().toString();
@@ -236,25 +236,50 @@ public class CalendarActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
                             Toast.makeText(CalendarActivity.this, "Event is already in use", Toast.LENGTH_SHORT).show();
+                            hideProgressBar(); // Oculta la ProgressBar en caso de evento duplicado
                         } else {
                             Event event = new Event(eventDate, eventTime, eventName);
                             String eventId = userEventsRef.push().getKey();
-                            userEventsRef.child(eventId).setValue(event);
-                            finish();
+                            userEventsRef.child(eventId).setValue(event)
+                                    .addOnSuccessListener(aVoid -> {
+                                        finish();
+                                        hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(CalendarActivity.this, "Error adding event", Toast.LENGTH_SHORT).show();
+                                        hideProgressBar(); // Oculta la ProgressBar en caso de error
+                                    });
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                        hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
                     }
                 });
 
             } else {
                 Toast.makeText(getApplicationContext(), "Event name must not exceed 11 characters", Toast.LENGTH_SHORT).show();
+                hideProgressBar(); // Oculta la ProgressBar si el nombre del evento excede los 11 caracteres
             }
         } else {
             Toast.makeText(getApplicationContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            hideProgressBar(); // Oculta la ProgressBar si no se completan todos los campos
+        }
+    }
+
+
+
+    private void showProgressBar() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideProgressBar() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
         }
     }
 

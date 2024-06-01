@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/loginbkg"
-
+    android:background="@color/fondo"
     tools:context=".CalendarActivity">
 
     <CalendarView
@@ -14,8 +13,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:layout_marginTop="20dp"
+        android:theme="@style/CalendarView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <EditText
         android:id="@+id/nameText"
@@ -29,7 +30,9 @@
         android:inputType="date|textNoSuggestions"
         app:layout_constraintEnd_toStartOf="@+id/buttonHour"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
+        app:layout_constraintTop_toBottomOf="@+id/calendarView"
+        android:textColorHint="@color/white"
+        android:textColor="@color/white"/>
 
     <EditText
         android:id="@+id/dateText"
@@ -45,7 +48,9 @@
         android:longClickable="false"
         app:layout_constraintEnd_toStartOf="@+id/saveButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hourText" />
+        app:layout_constraintTop_toBottomOf="@+id/hourText"
+        android:textColorHint="@color/white"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/saveButton"
@@ -58,7 +63,8 @@
         android:text="Save Event"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/dateText"
-        app:layout_constraintTop_toBottomOf="@+id/buttonHour" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonHour"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/editButton"
@@ -72,7 +78,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/dateText"
-        app:layout_constraintTop_toBottomOf="@+id/buttonHour" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonHour"
+        android:textColor="@color/white"/>
 
     <EditText
         android:id="@+id/hourText"
@@ -88,7 +95,9 @@
         android:inputType="time|textNoSuggestions"
         app:layout_constraintEnd_toStartOf="@+id/buttonHour"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nameText" />
+        app:layout_constraintTop_toBottomOf="@+id/nameText"
+        android:textColorHint="@color/white"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/buttonHour"
@@ -101,7 +110,8 @@
         android:text="Select Hour"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/hourText"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
+        app:layout_constraintTop_toBottomOf="@+id/calendarView"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/buttonDelete"
@@ -110,6 +120,17 @@
         android:backgroundTint="@color/red"
         android:text="Delete Event"
         app:layout_constraintEnd_toEndOf="@+id/buttonHour"
-        app:layout_constraintTop_toTopOf="@+id/nameText" />
+        app:layout_constraintTop_toTopOf="@+id/nameText"
+        android:textColor="@color/white"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar2"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,7 +5,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,30 +13,27 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TimeFlow"
+        android:theme="@style/Base.Theme.TimeFlow"
         tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".CalendarActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".EventsActivity"
-            android:exported="false"
-            android:label="@string/title_activity_events"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.TimeFlow" />
-        <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".EventNotificationService" />
+
+        <service android:name=".Service.EventNotificationService" />
     </application>
 
 </manifest>

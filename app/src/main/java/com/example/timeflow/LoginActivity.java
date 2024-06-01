@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,12 +30,15 @@ public class LoginActivity extends AppCompatActivity {
     EditText signupEmail, signupPassword;
     Button signupButton, loginButton;
 
+    ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        progressBar = findViewById(R.id.progressBar3);
+        hideProgressBar();
 
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -62,6 +67,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
+        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+
         final String email = signupEmail.getText().toString();
         final String password = signupPassword.getText().toString();
 
@@ -72,31 +79,40 @@ public class LoginActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Toast.makeText(LoginActivity.this, "Email is already in use", Toast.LENGTH_SHORT).show();
+                    hideProgressBar(); // Oculta la ProgressBar en caso de email duplicado
                 } else {
                     Login login = new Login(email, password);
                     String userId = reference.push().getKey();
-                    reference.child(userId).setValue(login);
+                    reference.child(userId).setValue(login)
+                            .addOnSuccessListener(aVoid -> {
+                                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("userId", userId);
+                                editor.apply();
 
-                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("userId", userId);
-                    editor.apply();
-
-                    goToEventsActivity(userId);
-
-                    Toast.makeText(LoginActivity.this, "You have signed up successfully!", Toast.LENGTH_SHORT).show();
+                                goToEventsActivity(userId);
+                                Toast.makeText(LoginActivity.this, "You have signed up successfully!", Toast.LENGTH_SHORT).show();
+                                hideProgressBar(); // Oculta la ProgressBar después de completar el registro
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(LoginActivity.this, "Error signing up", Toast.LENGTH_SHORT).show();
+                                hideProgressBar(); // Oculta la ProgressBar en caso de error
+                            });
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(LoginActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
             }
         });
     }
 
 
     private void loginUser() {
+        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+
         String userEmail = signupEmail.getText().toString().trim();
         String userPassword = signupPassword.getText().toString().trim();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
@@ -120,26 +136,31 @@ public class LoginActivity extends AppCompatActivity {
                             editor.apply();
 
                             goToEventsActivity(userId);
+                            hideProgressBar(); // Oculta la ProgressBar después de completar el inicio de sesión
                         } else {
                             signupPassword.setError("Invalid Credentials");
                             signupPassword.requestFocus();
+                            hideProgressBar(); // Oculta la ProgressBar en caso de credenciales inválidas
                         }
                     }
                 } else {
                     signupEmail.setError("User does not exist");
                     signupEmail.requestFocus();
+                    hideProgressBar(); // Oculta la ProgressBar en caso de usuario no encontrado
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(LoginActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
             }
         });
     }
 
+
     private void goToEventsActivity(String userId) {
-        Intent intent = new Intent(LoginActivity.this, EventsActivity.class);
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra("userId", userId);
         startActivity(intent);
         finish();
@@ -172,6 +193,18 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             signupEmail.setError(null);
             return true;
+        }
+    }
+
+    private void showProgressBar() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideProgressBar() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.INVISIBLE);
         }
     }
 }
