@@ -45,30 +45,48 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
     private RecyclerView mRecyclerView;
     private EventsAdapter mAdapter;
     private List<Event> mEventos;
-
     private ProgressBar progressBar;
-
-    TextView textView;
-
-    String userId;
+    private TextView textView;
+    private String userId;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_events, container, false);
 
+        initializeUI(view);
+        setupSharedPreferences();
+        startEventNotificationService();
+
+        setupRecyclerView(view);
+        setupCalendarButton(view);
+        setupProgressBar(view);
+
+        if (!userId.isEmpty()) {
+            setupDatabaseListener();
+        }
+
+        return view;
+    }
+
+    private void initializeUI(View view) {
+        textView = view.findViewById(R.id.textView);
+    }
+
+    private void setupSharedPreferences() {
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         userId = sharedPreferences.getString("userId", "");
-
-        textView = view.findViewById(R.id.textView);
 
         if (userId.isEmpty()) {
             userId = requireActivity().getIntent().getStringExtra("userId");
         }
+    }
 
+    private void startEventNotificationService() {
         Intent serviceIntent = new Intent(requireActivity(), EventNotificationService.class);
         requireActivity().startService(serviceIntent);
+    }
 
+    private void setupRecyclerView(View view) {
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -76,67 +94,70 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
         mEventos = new ArrayList<>();
         mAdapter = new EventsAdapter(requireContext(), mEventos, this);
         mRecyclerView.setAdapter(mAdapter);
-
-        FloatingActionButton calendarButton = view.findViewById(R.id.calendarButton);
-
-        calendarButton.setOnClickListener(v -> goToCalendarActivity(userId));
-
-        progressBar = view.findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
-
-        if (!userId.isEmpty()) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
-            userRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
-
-                    for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
-                        Event event = eventSnapshot.getValue(Event.class);
-                        String fechaEvento = event.getEventDate();
-
-                        if (!eventosPorFecha.containsKey(fechaEvento)) {
-                            eventosPorFecha.put(fechaEvento, new ArrayList<>());
-                        }
-
-                        eventosPorFecha.get(fechaEvento).add(event);
-                    }
-
-                    mEventos.clear();
-
-                    for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
-                        List<Event> eventosEnFecha = entry.getValue();
-                        for (Event evento : eventosEnFecha) {
-                            mEventos.add(evento);
-                        }
-                    }
-
-                    mAdapter.notifyDataSetChanged();
-
-                    if (mRecyclerView != null) {
-                        mAdapter.scrollToBottom(mRecyclerView);
-                    }
-
-                    progressBar.setVisibility(View.GONE);
-
-                    // Actualizar la visibilidad del TextView después de que se carguen los datos
-                    if (mEventos.isEmpty()) {
-                        textView.setVisibility(View.VISIBLE);
-                    } else {
-                        textView.setVisibility(View.INVISIBLE);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    progressBar.setVisibility(View.GONE);
-                }
-            });
-        }
-
-        return view;
     }
 
+    private void setupCalendarButton(View view) {
+        FloatingActionButton calendarButton = view.findViewById(R.id.calendarButton);
+        calendarButton.setOnClickListener(v -> goToCalendarActivity(userId));
+    }
+
+    private void setupProgressBar(View view) {
+        progressBar = view.findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void setupDatabaseListener() {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                updateEventList(dataSnapshot);
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void updateEventList(DataSnapshot dataSnapshot) {
+        TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
+
+        for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
+            Event event = eventSnapshot.getValue(Event.class);
+            String fechaEvento = event.getEventDate();
+
+            if (!eventosPorFecha.containsKey(fechaEvento)) {
+                eventosPorFecha.put(fechaEvento, new ArrayList<>());
+            }
+
+            eventosPorFecha.get(fechaEvento).add(event);
+        }
+
+        mEventos.clear();
+        for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
+            List<Event> eventosEnFecha = entry.getValue();
+            mEventos.addAll(eventosEnFecha);
+        }
+
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private void updateUI() {
+        if (mRecyclerView != null) {
+            mAdapter.scrollToBottom(mRecyclerView);
+        }
+
+        progressBar.setVisibility(View.GONE);
+
+        if (mEventos.isEmpty()) {
+            textView.setVisibility(View.VISIBLE);
+        } else {
+            textView.setVisibility(View.INVISIBLE);
+        }
+    }
 
     private void goToCalendarActivity(String userId) {
         Intent intent = new Intent(requireActivity(), CalendarActivity.class);
@@ -152,3 +173,4 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
         startActivity(intent);
     }
 }
+

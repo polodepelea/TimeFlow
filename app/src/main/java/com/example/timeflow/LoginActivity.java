@@ -27,32 +27,40 @@ import java.util.regex.Pattern;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText signupEmail, signupPassword;
-    Button signupButton, loginButton;
-
-    ProgressBar progressBar;
+    private EditText signupEmail, signupPassword;
+    private Button signupButton, loginButton;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        initializeViews();
+        checkForExistingUser();
+        setupButtonListeners();
+    }
+
+    private void initializeViews() {
         progressBar = findViewById(R.id.progressBar3);
         hideProgressBar();
 
+        signupEmail = findViewById(R.id.email);
+        signupPassword = findViewById(R.id.password);
+        signupButton = findViewById(R.id.signupButton);
+        loginButton = findViewById(R.id.loginButton);
+    }
 
+    private void checkForExistingUser() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         String userIdprefs = sharedPreferences.getString("userId", "");
 
         if (!userIdprefs.isEmpty()) {
             goToEventsActivity(userIdprefs);
         }
+    }
 
-        signupEmail = findViewById(R.id.email);
-        signupPassword = findViewById(R.id.password);
-        loginButton = findViewById(R.id.loginButton);
-        signupButton = findViewById(R.id.signupButton);
-
+    private void setupButtonListeners() {
         signupButton.setOnClickListener(view -> {
             if (validateEmail() && validatePassword()) {
                 registerUser();
@@ -67,51 +75,45 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+        showProgressBar();
 
         final String email = signupEmail.getText().toString();
         final String password = signupPassword.getText().toString();
 
-        final DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
 
         reference.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Toast.makeText(LoginActivity.this, "Email is already in use", Toast.LENGTH_SHORT).show();
-                    hideProgressBar(); // Oculta la ProgressBar en caso de email duplicado
+                    hideProgressBar();
                 } else {
-                    Login login = new Login(email, password);
-                    String userId = reference.push().getKey();
-                    reference.child(userId).setValue(login)
-                            .addOnSuccessListener(aVoid -> {
-                                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("userId", userId);
-                                editor.apply();
-
-                                goToEventsActivity(userId);
-                                Toast.makeText(LoginActivity.this, "You have signed up successfully!", Toast.LENGTH_SHORT).show();
-                                hideProgressBar(); // Oculta la ProgressBar después de completar el registro
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(LoginActivity.this, "Error signing up", Toast.LENGTH_SHORT).show();
-                                hideProgressBar(); // Oculta la ProgressBar en caso de error
-                            });
+                    createUser(reference, email, password);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(LoginActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                showToastAndHideProgressBar("Error querying the database");
             }
         });
     }
 
+    private void createUser(DatabaseReference reference, String email, String password) {
+        Login login = new Login(email, password);
+        String userId = reference.push().getKey();
+        reference.child(userId).setValue(login)
+                .addOnSuccessListener(aVoid -> {
+                    saveUserIdToPreferences(userId);
+                    goToEventsActivity(userId);
+                    showToastAndHideProgressBar("You have signed up successfully!");
+                })
+                .addOnFailureListener(e -> showToastAndHideProgressBar("Error signing up"));
+    }
 
     private void loginUser() {
-        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+        showProgressBar();
 
         String userEmail = signupEmail.getText().toString().trim();
         String userPassword = signupPassword.getText().toString().trim();
@@ -122,42 +124,47 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    String userId = null;
-                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                        userId = userSnapshot.getKey();
-                        break;
-                    }
-                    if (userId != null) {
-                        String passwordFromDB = snapshot.child(userId).child("password").getValue(String.class);
-                        if (passwordFromDB.equals(userPassword)) {
-                            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("userId", userId);
-                            editor.apply();
-
-                            goToEventsActivity(userId);
-                            hideProgressBar(); // Oculta la ProgressBar después de completar el inicio de sesión
-                        } else {
-                            signupPassword.setError("Invalid Credentials");
-                            signupPassword.requestFocus();
-                            hideProgressBar(); // Oculta la ProgressBar en caso de credenciales inválidas
-                        }
-                    }
+                    verifyUser(snapshot, userPassword);
                 } else {
+                    showToastAndHideProgressBar("User does not exist");
                     signupEmail.setError("User does not exist");
                     signupEmail.requestFocus();
-                    hideProgressBar(); // Oculta la ProgressBar en caso de usuario no encontrado
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(LoginActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                showToastAndHideProgressBar("Error querying the database");
             }
         });
     }
 
+    private void verifyUser(DataSnapshot snapshot, String userPassword) {
+        String userId = null;
+        for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+            userId = userSnapshot.getKey();
+            break;
+        }
+        if (userId != null) {
+            String passwordFromDB = snapshot.child(userId).child("password").getValue(String.class);
+            if (passwordFromDB.equals(userPassword)) {
+                saveUserIdToPreferences(userId);
+                goToEventsActivity(userId);
+                hideProgressBar();
+            } else {
+                showToastAndHideProgressBar("Invalid Credentials");
+                signupPassword.setError("Invalid Credentials");
+                signupPassword.requestFocus();
+            }
+        }
+    }
+
+    private void saveUserIdToPreferences(String userId) {
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("userId", userId);
+        editor.apply();
+    }
 
     private void goToEventsActivity(String userId) {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -166,9 +173,8 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    public Boolean validatePassword() {
+    private Boolean validatePassword() {
         String val = signupPassword.getText().toString().trim();
-
         if (val.isEmpty()) {
             signupPassword.setError("Password cannot be empty");
             return false;
@@ -178,16 +184,13 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public Boolean validateEmail() {
+    private Boolean validateEmail() {
         String email = signupEmail.getText().toString().trim();
         String emailPattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}";
-        Pattern pattern = Pattern.compile(emailPattern);
-        Matcher matcher = pattern.matcher(email);
-
         if (email.isEmpty()) {
             signupEmail.setError("Email cannot be empty");
             return false;
-        } else if (!matcher.matches()) {
+        } else if (!Pattern.compile(emailPattern).matcher(email).matches()) {
             signupEmail.setError("Invalid email format");
             return false;
         } else {
@@ -207,5 +210,11 @@ public class LoginActivity extends AppCompatActivity {
             progressBar.setVisibility(View.INVISIBLE);
         }
     }
+
+    private void showToastAndHideProgressBar(String message) {
+        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+        hideProgressBar();
+    }
 }
+
 

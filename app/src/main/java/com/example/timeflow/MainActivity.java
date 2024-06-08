@@ -12,11 +12,11 @@ import android.os.Bundle;
 
 import com.example.timeflow.Fragment.EventsFragment;
 import com.example.timeflow.Fragment.NotepadFragment;
+import com.example.timeflow.Service.EventNotificationService;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +28,11 @@ public class MainActivity extends AppCompatActivity {
 
         replaceFragment(new EventsFragment());
 
+        setupBottomNavigationBar(navigationBarView);
+        setupTopAppBarMenu(topAppBar);
+    }
 
+    private void setupBottomNavigationBar(NavigationBarView navigationBarView) {
         navigationBarView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.item_1) {
                 replaceFragment(new EventsFragment());
@@ -40,8 +44,9 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
 
-
+    private void setupTopAppBarMenu(MaterialToolbar topAppBar) {
         topAppBar.setOnMenuItemClickListener(menuItem -> {
             int itemId = menuItem.getItemId();
 
@@ -63,17 +68,23 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-    public void logout() {
+    private void logout() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.remove("userId");
         editor.apply();
+
+        stopEventNotificationService();
 
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
     }
 
-
+    private void stopEventNotificationService() {
+        Intent serviceIntent = new Intent(MainActivity.this, EventNotificationService.class);
+        stopService(serviceIntent);
+    }
 }
+
 

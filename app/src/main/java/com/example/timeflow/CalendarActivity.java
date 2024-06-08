@@ -36,25 +36,24 @@ import java.util.UUID;
 public class CalendarActivity extends AppCompatActivity {
     private Button buttonHour, saveButton, deleteButton, editButton;
     private EditText hourText, dateText, nameText;
-    String userId;
-    String eventId;
-
+    private String userId;
     private ProgressBar progressBar;
-
-
-    Event clickedEvent;
-
+    private Event clickedEvent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
 
+        initializeViews();
+        setupButtons();
+        retrieveUserId();
+        getSelectedDate();
+    }
+
+    private void initializeViews() {
         progressBar = findViewById(R.id.progressBar2);
         hideProgressBar();
-
-
-
 
         dateText = findViewById(R.id.dateText);
         hourText = findViewById(R.id.hourText);
@@ -64,43 +63,47 @@ public class CalendarActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         editButton = findViewById(R.id.editButton);
         buttonHour = findViewById(R.id.buttonHour);
+    }
 
-
+    private void setupButtons() {
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("clickedEvent")) {
-            deleteButton.setVisibility(View.VISIBLE);
-            saveButton.setVisibility(View.INVISIBLE);
-            editButton.setVisibility(View.VISIBLE);
-
-            clickedEvent = (Event) intent.getSerializableExtra("clickedEvent");
-
-            dateText.setText(clickedEvent.getEventDate());
-            hourText.setText(clickedEvent.getEventTime());
-            nameText.setText(clickedEvent.getEventName());
-            nameText.setEnabled(false);
-
-
+            setupForEditEvent(intent);
         } else {
-            deleteButton.setVisibility(View.INVISIBLE);
-            saveButton.setVisibility(View.VISIBLE);
-            editButton.setVisibility(View.INVISIBLE);
-
+            setupForNewEvent();
         }
 
         saveButton.setOnClickListener(v -> onSaveButtonClick());
         buttonHour.setOnClickListener(v -> onHourButtonClick());
         deleteButton.setOnClickListener(v -> deleteEvent());
         editButton.setOnClickListener(v -> editEvent());
+    }
 
+    private void setupForEditEvent(Intent intent) {
+        deleteButton.setVisibility(View.VISIBLE);
+        saveButton.setVisibility(View.INVISIBLE);
+        editButton.setVisibility(View.VISIBLE);
 
+        clickedEvent = (Event) intent.getSerializableExtra("clickedEvent");
+
+        dateText.setText(clickedEvent.getEventDate());
+        hourText.setText(clickedEvent.getEventTime());
+        nameText.setText(clickedEvent.getEventName());
+        nameText.setEnabled(false);
+    }
+
+    private void setupForNewEvent() {
+        deleteButton.setVisibility(View.INVISIBLE);
+        saveButton.setVisibility(View.VISIBLE);
+        editButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void retrieveUserId() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         userId = sharedPreferences.getString("userId", "");
-
         if (userId.isEmpty()) {
             userId = getIntent().getStringExtra("userId");
         }
-
-        getSelectedDate();
     }
 
     public void logout() {
@@ -114,18 +117,15 @@ public class CalendarActivity extends AppCompatActivity {
         finish();
     }
 
-
     private void getSelectedDate() {
         CalendarView calendarView = findViewById(R.id.calendarView);
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             String formattedMonth = String.format("%02d", month + 1);
             String formattedDayOfMonth = String.format("%02d", dayOfMonth);
-
-            String selectedDate = year + "-" + (formattedMonth) + "-" + formattedDayOfMonth;
+            String selectedDate = year + "-" + formattedMonth + "-" + formattedDayOfMonth;
             dateText.setText(selectedDate);
         });
     }
-
 
     private void onHourButtonClick() {
         final Calendar c = Calendar.getInstance();
@@ -139,9 +139,8 @@ public class CalendarActivity extends AppCompatActivity {
         timePickerDialog.show();
     }
 
-
     public void deleteEvent() {
-        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+        showProgressBar();
 
         DatabaseReference userEventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
 
@@ -153,24 +152,24 @@ public class CalendarActivity extends AppCompatActivity {
                         eventSnapshot.getRef().removeValue()
                                 .addOnSuccessListener(aVoid -> {
                                     finish();
-                                    hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
+                                    hideProgressBar();
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(CalendarActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show();
-                                    hideProgressBar(); // Oculta la ProgressBar en caso de error
+                                    hideProgressBar();
                                 });
                         break;
                     }
                 } else {
                     Toast.makeText(CalendarActivity.this, "No event found to delete", Toast.LENGTH_SHORT).show();
-                    hideProgressBar(); // Oculta la ProgressBar si no hay eventos para eliminar
+                    hideProgressBar();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                hideProgressBar();
             }
         });
     }
@@ -193,35 +192,34 @@ public class CalendarActivity extends AppCompatActivity {
                             eventSnapshot.getRef().child("eventTime").setValue(newHour)
                                     .addOnSuccessListener(aVoid -> {
                                         finish();
-                                        hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
+                                        hideProgressBar();
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(CalendarActivity.this, "Error editing event", Toast.LENGTH_SHORT).show();
-                                        hideProgressBar(); // Oculta la ProgressBar en caso de error
+                                        hideProgressBar();
                                     });
                             break;
                         }
                     } else {
                         Toast.makeText(CalendarActivity.this, "No event found to edit", Toast.LENGTH_SHORT).show();
-                        hideProgressBar(); // Oculta la ProgressBar si no se encuentra el evento para editar
+                        hideProgressBar();
                     }
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                    hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                    hideProgressBar();
                 }
             });
         } else {
             Toast.makeText(CalendarActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            hideProgressBar(); // Oculta la ProgressBar si no se completan todos los campos
+            hideProgressBar();
         }
     }
 
-
     private void onSaveButtonClick() {
-        showProgressBar(); // Muestra la ProgressBar antes de ejecutar la consulta
+        showProgressBar();
 
         String eventDate = dateText.getText().toString();
         String eventTime = hourText.getText().toString();
@@ -236,18 +234,18 @@ public class CalendarActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
                             Toast.makeText(CalendarActivity.this, "Event is already in use", Toast.LENGTH_SHORT).show();
-                            hideProgressBar(); // Oculta la ProgressBar en caso de evento duplicado
+                            hideProgressBar();
                         } else {
                             Event event = new Event(eventDate, eventTime, eventName);
                             String eventId = userEventsRef.push().getKey();
                             userEventsRef.child(eventId).setValue(event)
                                     .addOnSuccessListener(aVoid -> {
                                         finish();
-                                        hideProgressBar(); // Oculta la ProgressBar después de completar la consulta
+                                        hideProgressBar();
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(CalendarActivity.this, "Error adding event", Toast.LENGTH_SHORT).show();
-                                        hideProgressBar(); // Oculta la ProgressBar en caso de error
+                                        hideProgressBar();
                                     });
                         }
                     }
@@ -255,21 +253,19 @@ public class CalendarActivity extends AppCompatActivity {
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
-                        hideProgressBar(); // Oculta la ProgressBar en caso de error de consulta
+                        hideProgressBar();
                     }
                 });
 
             } else {
                 Toast.makeText(getApplicationContext(), "Event name must not exceed 11 characters", Toast.LENGTH_SHORT).show();
-                hideProgressBar(); // Oculta la ProgressBar si el nombre del evento excede los 11 caracteres
+                hideProgressBar();
             }
         } else {
             Toast.makeText(getApplicationContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            hideProgressBar(); // Oculta la ProgressBar si no se completan todos los campos
+            hideProgressBar();
         }
     }
-
-
 
     private void showProgressBar() {
         if (progressBar != null) {
@@ -282,8 +278,7 @@ public class CalendarActivity extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
         }
     }
-
-
 }
+
 
 

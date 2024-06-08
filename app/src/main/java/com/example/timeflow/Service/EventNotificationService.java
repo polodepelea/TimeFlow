@@ -34,6 +34,7 @@ public class EventNotificationService extends Service {
     private static final String CHANNEL_ID = "EventNotifications";
     private static final int NOTIFICATION_ID = 123;
     private static final String TAG = "EventNotificationServi";
+
     private String userId;
     private DatabaseReference eventsRef;
     private Handler handler;
@@ -42,28 +43,7 @@ public class EventNotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        userId = sharedPreferences.getString("userId", "");
-        if (userId.isEmpty()) {
-            stopSelf();
-            return;
-        }
-
-        createNotificationChannel();
-        startForeground(NOTIFICATION_ID, createNotification());
-
-        eventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
-
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                checkEvents();
-                handler.postDelayed(this, 1000);
-            }
-        };
-        handler.post(runnable);
+        initializeService();
     }
 
     @Override
@@ -85,6 +65,27 @@ public class EventNotificationService extends Service {
         }
     }
 
+    private void initializeService() {
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        userId = sharedPreferences.getString("userId", "");
+        if (userId.isEmpty()) {
+            stopSelf();
+            return;
+        }
+
+        createNotificationChannel();
+        startForeground(NOTIFICATION_ID, createNotification());
+
+        eventsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+
+        handler = new Handler();
+        runnable = () -> {
+            checkEvents();
+            handler.postDelayed(runnable, 1000);
+        };
+        handler.post(runnable);
+    }
+
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Event Notifications";
@@ -98,8 +99,7 @@ public class EventNotificationService extends Service {
 
     private Notification createNotification() {
         Intent notificationIntent = new Intent(this, EventsFragment.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Event Notifications")
@@ -118,7 +118,8 @@ public class EventNotificationService extends Service {
                     if (event != null) {
                         try {
                             if (isEventNear(event)) {
-                                showNotification(event.getEventName(), "Event is coming soon!");
+                                int notificationId = event.getEventName().hashCode();
+                                showNotification(event.getEventName(), "Event is coming soon!", notificationId);
                             }
                         } catch (ParseException e) {
                             e.printStackTrace();
@@ -137,17 +138,14 @@ public class EventNotificationService extends Service {
     private boolean isEventNear(Event event) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date eventDateTime = sdf.parse(event.getEventDate() + " " + event.getEventTime());
-        Log.d(TAG, eventDateTime.toString());
-
         Date currentDateTime = new Date();
         long differenceInMillis = eventDateTime.getTime() - currentDateTime.getTime();
         return differenceInMillis > 0 && differenceInMillis <= 1000;
     }
 
-    private void showNotification(String title, String message) {
+    private void showNotification(String title, String message, int notificationId) {
         Intent notificationIntent = new Intent(this, EventsFragment.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, notificationId, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
@@ -156,12 +154,11 @@ public class EventNotificationService extends Service {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(notificationId, builder.build());
     }
 }
+
 
 
 
