@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import com.example.timeflow.CalendarActivity;
 import com.example.timeflow.Service.EventNotificationService;
 import com.example.timeflow.HelpersClass.Event;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,11 +35,17 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 
 import java.util.Map;
 import java.util.TreeMap;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 
 public class EventsFragment extends Fragment implements EventsAdapter.OnItemClickListener {
@@ -63,6 +71,38 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
 
         if (!userId.isEmpty()) {
             setupDatabaseListener();
+        }
+
+        if (getArguments() != null) {
+            String palabraConsulta = getArguments().getString("palabraConsulta");
+            Log.d("fetchDataByDate", "Fetching events for date: " + palabraConsulta);
+
+            fetchDataFromDatabase(palabraConsulta);
+
+            String actualizar = getArguments().getString("actualizar");
+            if(actualizar == "1"){
+                setupDatabaseListener();
+            }
+
+            String selectedDate = getArguments().getString("selectedDate");
+            if (selectedDate != null && !selectedDate.isEmpty()) {
+                Log.d("fetchDataByDate", "Fetching events for date: " + selectedDate);
+
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String convertedDate = "";
+
+                try {
+                    Date dateObj = inputFormat.parse(selectedDate);
+                    convertedDate = outputFormat.format(dateObj);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                fetchDataByDateFromDatabase(convertedDate);
+            } else {
+                Log.e("fetchDataByDate", "Selected date is null or empty.");
+            }
         }
 
         return view;
@@ -111,7 +151,20 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                updateEventList(dataSnapshot);
+                List<Event> todayEvents = new ArrayList<>();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String todayDateString = dateFormat.format(new Date());
+
+                for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
+                    Event event = eventSnapshot.getValue(Event.class);
+                    String eventDate = event.getEventDate();
+
+                    if (eventDate.equals(todayDateString)) {
+                        todayEvents.add(event);
+                    }
+                }
+
+                updateEventList(todayEvents);
                 updateUI();
             }
 
@@ -121,6 +174,8 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
             }
         });
     }
+
+
 
     private void updateEventList(DataSnapshot dataSnapshot) {
         TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
@@ -145,6 +200,29 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
         mAdapter.notifyDataSetChanged();
     }
 
+    private void updateEventList(List<Event> events) {
+        TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
+
+        for (Event event : events) {
+            String fechaEvento = event.getEventDate();
+
+            if (!eventosPorFecha.containsKey(fechaEvento)) {
+                eventosPorFecha.put(fechaEvento, new ArrayList<>());
+            }
+
+            eventosPorFecha.get(fechaEvento).add(event);
+        }
+
+        mEventos.clear();
+        for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
+            List<Event> eventosEnFecha = entry.getValue();
+            mEventos.addAll(eventosEnFecha);
+        }
+
+        mAdapter.notifyDataSetChanged();
+    }
+
+
     private void updateUI() {
         if (mRecyclerView != null) {
             mAdapter.scrollToBottom(mRecyclerView);
@@ -158,6 +236,44 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
             textView.setVisibility(View.INVISIBLE);
         }
     }
+
+    public void fetchDataFromDatabase(String palabraConsulta) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+        Query query = userRef.orderByChild("eventName").startAt(palabraConsulta).endAt(palabraConsulta + "\uf8ff");
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                updateEventList(dataSnapshot);
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    public void fetchDataByDateFromDatabase(String date) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("events");
+        Query query = userRef.orderByChild("eventDate").equalTo(date);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                updateEventList(dataSnapshot);
+                updateUI();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+
+
+
 
     private void goToCalendarActivity(String userId) {
         Intent intent = new Intent(requireActivity(), CalendarActivity.class);

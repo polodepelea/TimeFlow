@@ -1,6 +1,5 @@
 package com.example.timeflow;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -9,9 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
@@ -20,18 +16,13 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.timeflow.HelpersClass.Event;
-import com.example.timeflow.HelpersClass.Login;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Calendar;
-import java.util.UUID;
 
 public class CalendarActivity extends AppCompatActivity {
     private Button buttonHour, saveButton, deleteButton, editButton;
@@ -60,7 +51,7 @@ public class CalendarActivity extends AppCompatActivity {
         nameText = findViewById(R.id.nameText);
 
         deleteButton = findViewById(R.id.buttonDelete);
-        saveButton = findViewById(R.id.saveButton);
+        saveButton = findViewById(R.id.deleteButton);
         editButton = findViewById(R.id.editButton);
         buttonHour = findViewById(R.id.buttonHour);
     }
@@ -106,16 +97,6 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
-    public void logout() {
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("userId");
-        editor.apply();
-
-        Intent intent = new Intent(CalendarActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-    }
 
     private void getSelectedDate() {
         CalendarView calendarView = findViewById(R.id.calendarView);

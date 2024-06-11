@@ -67,12 +67,25 @@
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/top_app_bar"
         app:popupTheme="@style/ThemeOverlay.MyPopupTheme"
         app:title="TimeFlow"
-        app:titleTextColor="@color/white"/>
+        app:titleTextColor="@color/white" />
+
+    <SearchView
+        android:id="@+id/searchView"
+        android:theme="@style/SearchView"
+        android:visibility="invisible"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/view2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/topAppBar"/>
+
 
 
 
