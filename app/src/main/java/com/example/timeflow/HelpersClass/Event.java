@@ -7,7 +7,6 @@ public class Event implements Serializable {
     private String eventTime;
     private String eventDate;
 
-
     public Event() {
     }
 

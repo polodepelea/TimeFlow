@@ -1,7 +1,8 @@
 package com.example.timeflow.HelpersClass;
 
 public class Login {
-    String email, password;
+    private String email;
+    private String password;
 
     public Login() {
     }

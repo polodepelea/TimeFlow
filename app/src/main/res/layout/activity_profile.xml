@@ -7,85 +7,97 @@
     android:background="@color/fondo"
     tools:context=".ProfileActivity">
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:menu="@menu/top_app_bar_2"
+        app:navigationIcon="@drawable/baseline_arrow_back_24"
+        app:popupTheme="@style/ThemeOverlay.MyPopupTheme"
+        app:title=""
+        app:titleTextColor="@color/white" />
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/gris"
+        app:layout_constraintTop_toBottomOf="@+id/topAppBar" />
+
 
     <Button
         android:id="@+id/changeButton"
         android:layout_width="130dp"
         android:layout_height="50dp"
+        android:layout_marginStart="20dp"
         android:backgroundTint="@color/lavender"
         android:text="Change"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/deleteButton"
-        app:layout_constraintTop_toBottomOf="@+id/passwordText" />
+        app:layout_constraintEnd_toEndOf="@+id/deleteButton"
+        app:layout_constraintStart_toEndOf="@+id/passwordText"
+        app:layout_constraintTop_toTopOf="@+id/passwordText" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="187dp"
-        android:layout_height="166dp"
-        android:src="@drawable/baseline_person_24"
-        app:layout_constraintBottom_toTopOf="@+id/emailText"
+
+    <ImageButton
+
+        android:id="@+id/imageButton"
+        android:layout_width="364dp"
+        android:layout_height="335dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/user"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        app:layout_constraintTop_toTopOf="@+id/topAppBar" />
 
     <EditText
         android:id="@+id/passwordText"
-        android:layout_width="210dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="101dp"
-        android:layout_marginEnd="100dp"
-        android:layout_marginBottom="200dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:ems="10"
         android:hint="Select Name"
         android:inputType="date|textNoSuggestions"
         android:textColor="@color/white"
         android:textColorHint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/changeButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar4" />
+        app:layout_constraintTop_toBottomOf="@+id/emailText" />
 
     <EditText
         android:id="@+id/emailText"
-        android:layout_width="210dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="20dp"
         android:ems="10"
         android:hint="Select Name"
         android:inputType="date|textNoSuggestions"
         android:textColor="@color/white"
         android:textColorHint="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/passwordText"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/deleteButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/imageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="15dp"
-        android:layout_marginBottom="25dp"
-        android:backgroundTint="@color/lavender"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageView"
-        app:srcCompat="@drawable/baseline_add_24" />
+        app:layout_constraintTop_toBottomOf="@+id/imageButton" />
 
     <Button
         android:id="@+id/deleteButton"
         android:layout_width="130dp"
         android:layout_height="50dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
         android:backgroundTint="@color/lavender"
         android:text="Delete"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/changeButton"
-        app:layout_constraintEnd_toStartOf="@+id/changeButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/changeButton" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/emailText"
+        app:layout_constraintTop_toTopOf="@+id/emailText" />
 
     <ProgressBar
         android:id="@+id/progressBar4"

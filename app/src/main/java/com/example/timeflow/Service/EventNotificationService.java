@@ -34,7 +34,6 @@ public class EventNotificationService extends Service {
     private static final String CHANNEL_ID = "EventNotifications";
     private static final int NOTIFICATION_ID = 123;
     private static final String TAG = "EventNotificationServi";
-
     private String userId;
     private DatabaseReference eventsRef;
     private Handler handler;
@@ -88,8 +87,7 @@ public class EventNotificationService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Event Notifications";
-            String description = "Notifications for upcoming events";
+            CharSequence name = getString(R.string.event_notifications_name);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -102,8 +100,8 @@ public class EventNotificationService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Event Notifications")
-                .setContentText("Running in background")
+                .setContentTitle(getString(R.string.notification_content_title))
+                .setContentText(getString(R.string.notification_content_text_running_background))
                 .setSmallIcon(R.drawable.baseline_notifications_24)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -119,7 +117,7 @@ public class EventNotificationService extends Service {
                         try {
                             if (isEventNear(event)) {
                                 int notificationId = event.getEventName().hashCode();
-                                showNotification(event.getEventName(), "Event is coming soon!", notificationId);
+                                showNotification(event.getEventName(), getString(R.string.notification_event_soon_message), notificationId);
                             }
                         } catch (ParseException e) {
                             e.printStackTrace();
@@ -130,7 +128,7 @@ public class EventNotificationService extends Service {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "Error fetching events: " + databaseError.getMessage());
+                Log.e(TAG, getString(R.string.error_fetching_events) + databaseError.getMessage());
             }
         });
     }

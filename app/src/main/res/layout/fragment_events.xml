@@ -52,7 +52,7 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Añade algun evento"
+            android:text="Add an event"
             android:textColor="#F6F6F6"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -6,17 +6,17 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Menu;
 import android.view.View;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.example.timeflow.Fragment.EventsFragment;
 import com.example.timeflow.Fragment.NotepadFragment;
@@ -25,13 +25,15 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.Calendar;
+import android.net.Uri;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private NavigationBarView navigationBarView;
     private MaterialToolbar topAppBar;
     private SearchView searchView;
-
+    private static final String PDF_URL = "https://drive.google.com/file/d/1K_snecV3HihX_W9U4Dvh8HKmyVIpW1_N/view?usp=sharing";
     private String userId;
 
     @Override
@@ -53,10 +55,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupBottomNavigationBar() {
         navigationBarView.setOnItemSelectedListener(item -> {
+            Menu menu = topAppBar.getMenu();
             if (item.getItemId() == R.id.item_1) {
                 replaceFragment(new EventsFragment());
+                menu.findItem(R.id.search_calendar).setVisible(true);
+                menu.findItem(R.id.search).setVisible(true);
+
                 return true;
             } else if (item.getItemId() == R.id.item_2) {
+                menu.findItem(R.id.search_calendar).setVisible(false);
+                menu.findItem(R.id.search).setVisible(false);
+
                 replaceFragment(new NotepadFragment());
                 return true;
             } else {
@@ -83,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 EventsFragment eventsFragment = new EventsFragment();
 
                 Bundle bundle = new Bundle();
-                bundle.putString("palabraConsulta", query);
+                bundle.putString("wordInquiry", query);
                 eventsFragment.setArguments(bundle);
 
                 getSupportFragmentManager().beginTransaction()
@@ -106,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
             EventsFragment eventsFragment = new EventsFragment();
 
             Bundle bundle = new Bundle();
-            bundle.putString("actualizar", "1");
+            bundle.putString("update", "1");
             eventsFragment.setArguments(bundle);
 
             getSupportFragmentManager().beginTransaction()
@@ -131,10 +140,25 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.profile) {
                 goToProfileActivity(userId);
                 return true;
+            } else if (itemId == R.id.manual) {
+                downloadAndOpenPdf();
+                return true;
             } else {
                 return false;
             }
         });
+    }
+
+
+    private void downloadAndOpenPdf() {
+        Uri uri = Uri.parse(PDF_URL);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, getString(R.string.toast_message_no_pdf_viewer), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void calendarSearch() {

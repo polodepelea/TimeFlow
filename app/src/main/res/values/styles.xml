@@ -9,7 +9,6 @@
     </style>
 
     <style name="SearchView" parent="android:ThemeOverlay.Material.Dark.ActionBar">
-
     </style>
 
     <style name="Widget.App.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
@@ -28,8 +27,4 @@
         <item name="android:colorBackground">@color/gris</item>
         <item name="android:textColor">@color/white</item>
     </style>
-
-
-
-
 </resources>

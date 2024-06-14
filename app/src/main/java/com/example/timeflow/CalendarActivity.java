@@ -16,6 +16,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.timeflow.HelpersClass.Event;
+import com.example.timeflow.Service.EventNotificationService;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,16 +32,50 @@ public class CalendarActivity extends AppCompatActivity {
     private String userId;
     private ProgressBar progressBar;
     private Event clickedEvent;
+    private MaterialToolbar topAppBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+        topAppBar = findViewById(R.id.topAppBar);
+
+        topAppBar.setNavigationOnClickListener(v -> {
+            finish();
+        });
+        topAppBar.setOnMenuItemClickListener(menuItem -> {
+            int itemId = menuItem.getItemId();
+
+            if (itemId == R.id.logout) {
+                logout();
+                return true;
+            } else {
+                return false;
+            }
+        });
 
         initializeViews();
         setupButtons();
         retrieveUserId();
         getSelectedDate();
+    }
+
+    private void logout() {
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("userId");
+        editor.apply();
+
+        stopEventNotificationService();
+
+        Intent intent = new Intent(CalendarActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void stopEventNotificationService() {
+        Intent serviceIntent = new Intent(CalendarActivity.this, EventNotificationService.class);
+        stopService(serviceIntent);
     }
 
     private void initializeViews() {
@@ -136,20 +172,20 @@ public class CalendarActivity extends AppCompatActivity {
                                     hideProgressBar();
                                 })
                                 .addOnFailureListener(e -> {
-                                    Toast.makeText(CalendarActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_deleting_event), Toast.LENGTH_SHORT).show();
                                     hideProgressBar();
                                 });
                         break;
                     }
                 } else {
-                    Toast.makeText(CalendarActivity.this, "No event found to delete", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_no_event_to_delete), Toast.LENGTH_SHORT).show();
                     hideProgressBar();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_querying_database), Toast.LENGTH_SHORT).show();
                 hideProgressBar();
             }
         });
@@ -176,25 +212,25 @@ public class CalendarActivity extends AppCompatActivity {
                                         hideProgressBar();
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(CalendarActivity.this, "Error editing event", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_editing_event), Toast.LENGTH_SHORT).show();
                                         hideProgressBar();
                                     });
                             break;
                         }
                     } else {
-                        Toast.makeText(CalendarActivity.this, "No event found to edit", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_no_event_to_edit), Toast.LENGTH_SHORT).show();
                         hideProgressBar();
                     }
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_querying_database), Toast.LENGTH_SHORT).show();
                     hideProgressBar();
                 }
             });
         } else {
-            Toast.makeText(CalendarActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_fill_all_fields), Toast.LENGTH_SHORT).show();
             hideProgressBar();
         }
     }
@@ -214,7 +250,7 @@ public class CalendarActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-                            Toast.makeText(CalendarActivity.this, "Event is already in use", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_event_already_in_use), Toast.LENGTH_SHORT).show();
                             hideProgressBar();
                         } else {
                             Event event = new Event(eventDate, eventTime, eventName);
@@ -225,7 +261,7 @@ public class CalendarActivity extends AppCompatActivity {
                                         hideProgressBar();
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(CalendarActivity.this, "Error adding event", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_adding_event), Toast.LENGTH_SHORT).show();
                                         hideProgressBar();
                                     });
                         }
@@ -233,17 +269,17 @@ public class CalendarActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(CalendarActivity.this, "Error querying the database", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CalendarActivity.this, getString(R.string.toast_message_error_querying_database), Toast.LENGTH_SHORT).show();
                         hideProgressBar();
                     }
                 });
 
             } else {
-                Toast.makeText(getApplicationContext(), "Event name must not exceed 11 characters", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.toast_message_event_name_length), Toast.LENGTH_SHORT).show();
                 hideProgressBar();
             }
         } else {
-            Toast.makeText(getApplicationContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.toast_message_fill_all_fields), Toast.LENGTH_SHORT).show();
             hideProgressBar();
         }
     }

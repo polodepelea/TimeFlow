@@ -1,6 +1,53 @@
 <resources>
     <string name="app_name">TimeFlow</string>
     <string name="title_activity_events">EventsActivity</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="log_tag_database_error">DatabaseError</string>
+    <string name="log_message_query_error">Error querying the database</string>
+
+    <string name="log_tag_notepad_fragment">NotepadFragment</string>
+    <string name="log_message_database_error">Database Error: %s</string>
+
+    <string name="toast_message_error_deleting_event">Error deleting event</string>
+    <string name="toast_message_no_event_to_delete">No event found to delete</string>
+    <string name="toast_message_error_querying_database">Error querying the database</string>
+    <string name="toast_message_error_editing_event">Error editing event</string>
+    <string name="toast_message_no_event_to_edit">No event found to edit</string>
+    <string name="toast_message_fill_all_fields">Please fill in all fields</string>
+    <string name="toast_message_event_already_in_use">Event is already in use</string>
+    <string name="toast_message_error_adding_event">Error adding event</string>
+    <string name="toast_message_event_name_length">Event name must not exceed 11 characters</string>
+
+    <string name="toast_message_email_already_in_use">Email is already in use</string>
+    <string name="toast_message_signup_success">You have signed up successfully!</string>
+    <string name="toast_message_error_signing_up">Error signing up</string>
+    <string name="toast_message_user_does_not_exist">User does not exist</string>
+    <string name="error_user_does_not_exist">User does not exist</string>
+    <string name="toast_message_invalid_credentials">Invalid Credentials</string>
+    <string name="error_invalid_credentials">Invalid Credentials</string>
+    <string name="error_password_empty">Password cannot be empty</string>
+    <string name="error_email_empty">Email cannot be empty</string>
+    <string name="error_invalid_email_format">Invalid email format</string>
+
+    <string name="toast_message_no_pdf_viewer">No PDF viewer found</string>
+
+    <string name="toast_message_note_deleted_successfully">Note deleted successfully</string>
+    <string name="toast_message_failed_to_delete_note">Failed to delete note</string>
+    <string name="toast_message_no_note_to_delete">No note to delete</string>
+
+    <string name="dialog_title_delete_account">Delete Account</string>
+    <string name="dialog_message_delete_account">Are you sure you want to delete your account?</string>
+    <string name="toast_message_account_deleted">Account deleted.</string>
+    <string name="toast_message_failed_to_delete_account_data">Failed to delete account data.</string>
+    <string name="toast_message_password_updated">Password updated.</string>
+    <string name="toast_message_failed_to_update_password">Failed to update password.</string>
+    <string name="toast_message_password_cannot_be_empty">Password cannot be empty.</string>
+    <string name="toast_message_failed_to_load_image">Failed to load image</string>
+
+    <string name="event_notifications_name">Event Notifications</string>
+    <string name="notification_content_title">Event Notifications</string>
+    <string name="notification_content_text_running_background">Running in background</string>
+    <string name="notification_event_soon_message">Event is coming soon!</string>
+    <string name="error_fetching_events">Error fetching events</string>
 </resources>

@@ -20,7 +20,6 @@ import com.example.timeflow.CalendarActivity;
 import com.example.timeflow.Service.EventNotificationService;
 import com.example.timeflow.HelpersClass.Event;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,11 +47,12 @@ import java.util.Locale;
 
 
 
+
 public class EventsFragment extends Fragment implements EventsAdapter.OnItemClickListener {
 
     private RecyclerView mRecyclerView;
     private EventsAdapter mAdapter;
-    private List<Event> mEventos;
+    private List<Event> mEvents;
     private ProgressBar progressBar;
     private TextView textView;
     private String userId;
@@ -60,51 +60,16 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_events, container, false);
-
         initializeUI(view);
         setupSharedPreferences();
         startEventNotificationService();
-
         setupRecyclerView(view);
         setupCalendarButton(view);
         setupProgressBar(view);
-
         if (!userId.isEmpty()) {
             setupDatabaseListener();
         }
-
-        if (getArguments() != null) {
-            String palabraConsulta = getArguments().getString("palabraConsulta");
-            Log.d("fetchDataByDate", "Fetching events for date: " + palabraConsulta);
-
-            fetchDataFromDatabase(palabraConsulta);
-
-            String actualizar = getArguments().getString("actualizar");
-            if(actualizar == "1"){
-                setupDatabaseListener();
-            }
-
-            String selectedDate = getArguments().getString("selectedDate");
-            if (selectedDate != null && !selectedDate.isEmpty()) {
-                Log.d("fetchDataByDate", "Fetching events for date: " + selectedDate);
-
-                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                String convertedDate = "";
-
-                try {
-                    Date dateObj = inputFormat.parse(selectedDate);
-                    convertedDate = outputFormat.format(dateObj);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-
-                fetchDataByDateFromDatabase(convertedDate);
-            } else {
-                Log.e("fetchDataByDate", "Selected date is null or empty.");
-            }
-        }
-
+        handleArguments();
         return view;
     }
 
@@ -115,7 +80,6 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
     private void setupSharedPreferences() {
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         userId = sharedPreferences.getString("userId", "");
-
         if (userId.isEmpty()) {
             userId = requireActivity().getIntent().getStringExtra("userId");
         }
@@ -130,9 +94,8 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        mEventos = new ArrayList<>();
-        mAdapter = new EventsAdapter(requireContext(), mEventos, this);
+        mEvents = new ArrayList<>();
+        mAdapter = new EventsAdapter(requireContext(), mEvents, this);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -154,87 +117,81 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
                 List<Event> todayEvents = new ArrayList<>();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 String todayDateString = dateFormat.format(new Date());
-
                 for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
                     Event event = eventSnapshot.getValue(Event.class);
                     String eventDate = event.getEventDate();
-
                     if (eventDate.equals(todayDateString)) {
                         todayEvents.add(event);
                     }
                 }
-
                 updateEventList(todayEvents);
                 updateUI();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                progressBar.setVisibility(View.GONE);
+                handleDatabaseError();
             }
         });
     }
 
+    private void handleArguments() {
+        if (getArguments() != null) {
+            String wordInquiry = getArguments().getString("wordInquiry");
+            fetchDataFromDatabase(wordInquiry);
 
+            String update = getArguments().getString("update");
+            if (update != null && update.equals("1")) {
+                setupDatabaseListener();
+            }
+
+            String selectedDate = getArguments().getString("selectedDate");
+            if (selectedDate != null && !selectedDate.isEmpty()) {
+                fetchDataByDateFromDatabase(selectedDate);
+            }
+        }
+    }
 
     private void updateEventList(DataSnapshot dataSnapshot) {
         TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
-
         for (DataSnapshot eventSnapshot : dataSnapshot.getChildren()) {
             Event event = eventSnapshot.getValue(Event.class);
             String fechaEvento = event.getEventDate();
-
             if (!eventosPorFecha.containsKey(fechaEvento)) {
                 eventosPorFecha.put(fechaEvento, new ArrayList<>());
             }
-
             eventosPorFecha.get(fechaEvento).add(event);
         }
-
-        mEventos.clear();
-        for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
-            List<Event> eventosEnFecha = entry.getValue();
-            mEventos.addAll(eventosEnFecha);
-        }
-
-        mAdapter.notifyDataSetChanged();
+        updateEventListFromMap(eventosPorFecha);
     }
 
     private void updateEventList(List<Event> events) {
         TreeMap<String, List<Event>> eventosPorFecha = new TreeMap<>();
-
         for (Event event : events) {
             String fechaEvento = event.getEventDate();
-
             if (!eventosPorFecha.containsKey(fechaEvento)) {
                 eventosPorFecha.put(fechaEvento, new ArrayList<>());
             }
-
             eventosPorFecha.get(fechaEvento).add(event);
         }
-
-        mEventos.clear();
-        for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
-            List<Event> eventosEnFecha = entry.getValue();
-            mEventos.addAll(eventosEnFecha);
-        }
-
-        mAdapter.notifyDataSetChanged();
+        updateEventListFromMap(eventosPorFecha);
     }
 
+    private void updateEventListFromMap(TreeMap<String, List<Event>> eventosPorFecha) {
+        mEvents.clear();
+        for (Map.Entry<String, List<Event>> entry : eventosPorFecha.entrySet()) {
+            List<Event> eventosEnFecha = entry.getValue();
+            mEvents.addAll(eventosEnFecha);
+        }
+        mAdapter.notifyDataSetChanged();
+    }
 
     private void updateUI() {
         if (mRecyclerView != null) {
             mAdapter.scrollToBottom(mRecyclerView);
         }
-
         progressBar.setVisibility(View.GONE);
-
-        if (mEventos.isEmpty()) {
-            textView.setVisibility(View.VISIBLE);
-        } else {
-            textView.setVisibility(View.INVISIBLE);
-        }
+        textView.setVisibility(mEvents.isEmpty() ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void fetchDataFromDatabase(String palabraConsulta) {
@@ -249,7 +206,7 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                progressBar.setVisibility(View.GONE);
+                handleDatabaseError();
             }
         });
     }
@@ -266,14 +223,15 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                progressBar.setVisibility(View.GONE);
+                handleDatabaseError();
             }
         });
     }
 
-
-
-
+    private void handleDatabaseError() {
+        progressBar.setVisibility(View.GONE);
+        Log.e(getString(R.string.log_tag_database_error), getString(R.string.log_message_query_error));
+    }
 
     private void goToCalendarActivity(String userId) {
         Intent intent = new Intent(requireActivity(), CalendarActivity.class);
@@ -283,10 +241,11 @@ public class EventsFragment extends Fragment implements EventsAdapter.OnItemClic
 
     @Override
     public void onItemClick(int position) {
-        Event clickedEvent = mEventos.get(position);
+        Event clickedEvent = mEvents.get(position);
         Intent intent = new Intent(requireActivity(), CalendarActivity.class);
         intent.putExtra("clickedEvent", clickedEvent);
         startActivity(intent);
     }
 }
+
 

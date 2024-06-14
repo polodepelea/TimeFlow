@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -22,7 +21,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LoginActivity extends AppCompatActivity {
@@ -86,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    Toast.makeText(LoginActivity.this, "Email is already in use", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, getString(R.string.toast_message_email_already_in_use), Toast.LENGTH_SHORT).show();
                     hideProgressBar();
                 } else {
                     createUser(reference, email, password);
@@ -95,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                showToastAndHideProgressBar("Error querying the database");
+                showToastAndHideProgressBar(getString(R.string.toast_message_error_querying_database));
             }
         });
     }
@@ -107,9 +105,9 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     saveUserIdToPreferences(userId);
                     goToEventsActivity(userId);
-                    showToastAndHideProgressBar("You have signed up successfully!");
+                    showToastAndHideProgressBar(getString(R.string.toast_message_signup_success));
                 })
-                .addOnFailureListener(e -> showToastAndHideProgressBar("Error signing up"));
+                .addOnFailureListener(e -> showToastAndHideProgressBar(getString(R.string.toast_message_error_signing_up)));
     }
 
     private void loginUser() {
@@ -126,15 +124,15 @@ public class LoginActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     verifyUser(snapshot, userPassword);
                 } else {
-                    showToastAndHideProgressBar("User does not exist");
-                    signupEmail.setError("User does not exist");
+                    showToastAndHideProgressBar(getString(R.string.toast_message_user_does_not_exist));
+                    signupEmail.setError(getString(R.string.error_user_does_not_exist));
                     signupEmail.requestFocus();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                showToastAndHideProgressBar("Error querying the database");
+                showToastAndHideProgressBar(getString(R.string.toast_message_error_querying_database));
             }
         });
     }
@@ -152,8 +150,8 @@ public class LoginActivity extends AppCompatActivity {
                 goToEventsActivity(userId);
                 hideProgressBar();
             } else {
-                showToastAndHideProgressBar("Invalid Credentials");
-                signupPassword.setError("Invalid Credentials");
+                showToastAndHideProgressBar(getString(R.string.toast_message_invalid_credentials));
+                signupPassword.setError(getString(R.string.error_invalid_credentials));
                 signupPassword.requestFocus();
             }
         }
@@ -176,7 +174,7 @@ public class LoginActivity extends AppCompatActivity {
     private Boolean validatePassword() {
         String val = signupPassword.getText().toString().trim();
         if (val.isEmpty()) {
-            signupPassword.setError("Password cannot be empty");
+            signupPassword.setError(getString(R.string.error_password_empty));
             return false;
         } else {
             signupPassword.setError(null);
@@ -188,10 +186,10 @@ public class LoginActivity extends AppCompatActivity {
         String email = signupEmail.getText().toString().trim();
         String emailPattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}";
         if (email.isEmpty()) {
-            signupEmail.setError("Email cannot be empty");
+            signupEmail.setError(getString(R.string.error_email_empty));
             return false;
         } else if (!Pattern.compile(emailPattern).matcher(email).matches()) {
-            signupEmail.setError("Invalid email format");
+            signupEmail.setError(getString(R.string.error_invalid_email_format));
             return false;
         } else {
             signupEmail.setError(null);

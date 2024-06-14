@@ -7,32 +7,60 @@
     android:background="@color/fondo"
     tools:context=".CalendarActivity">
 
-    <CalendarView
-        android:id="@+id/calendarView"
-        android:layout_width="wrap_content"
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="20dp"
-        android:theme="@style/CalendarView"
+        android:minHeight="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        app:menu="@menu/top_app_bar_2"
+        app:popupTheme="@style/ThemeOverlay.MyPopupTheme"
+        app:title=""
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@drawable/baseline_arrow_back_24" />
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/gris"
+        app:layout_constraintBottom_toBottomOf="@+id/topAppBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <CalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="364dp"
+        android:layout_height="335dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="20dp"
+        android:theme="@style/CalendarView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/nameText"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="35dp"
         android:layout_marginEnd="20dp"
         android:ems="10"
         android:hint="Select Name"
         android:inputType="date|textNoSuggestions"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
         app:layout_constraintEnd_toStartOf="@+id/buttonHour"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView"
-        android:textColorHint="@color/white"
-        android:textColor="@color/white"/>
+        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
 
     <EditText
         android:id="@+id/dateText"
@@ -104,14 +132,13 @@
         android:layout_width="130dp"
         android:layout_height="50dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="88dp"
         android:layout_marginEnd="20dp"
         android:backgroundTint="@color/lavender"
         android:text="Select Hour"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/hourText"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView"
-        android:textColor="@color/white"/>
+        app:layout_constraintTop_toTopOf="@+id/hourText" />
 
     <Button
         android:id="@+id/buttonDelete"
