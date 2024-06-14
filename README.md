@@ -10,7 +10,7 @@ El objetivo del proyecto era combinar las funcionalidades de diversas aplicacion
 - Un bloc de notas simple y fácil de usar.
 
 ## 🔧 Desarrollo del proyecto
-- En el desarrollo de la aplicación de Gestión de Apartamentos Turísticos de Lenny Sofas, se optó por Android Studio como entorno de desarrollo.
+- En el desarrollo de la aplicación de TimeFlow, se optó por Android Studio como entorno de desarrollo.
 - El código se organiza de manera modular, asignando una clase específica para cada panel de la interfaz gráfica. Esto facilita la comprensión del código y mejora la mantenibilidad.
   
 ## 🌐 Despliegue
