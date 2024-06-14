@@ -17,29 +17,16 @@ El objetivo del proyecto era combinar las funcionalidades de diversas aplicacion
 
 ### Windows
 
-Para ejecutar la aplicación en un entorno Windows, sigue estos pasos:
+Para ejecutar la aplicación en un entorno Android, sigue estos pasos:
 
 1. Descarge el proyecto.
 
-2. Ve a la carpeta "Ejecutable".
-
-3. Encuentra el ejecutable de la aplicación (LennySofas.jar).
-
-4. Haz clic en el ejecutable para iniciar la aplicación.
-
-### Línea de Comandos
-
-Si prefieres ejecutar la aplicación desde la línea de comandos, sigue estos pasos:
-
-1. Descarge el proyecto.
-
-2. Abre una terminal o línea de comandos en tu sistema.
-
-3. Navega hasta la carpeta "Ejecutable".
-
-5. Ejecuta el ejecutable desde la línea de comandos utilizando el siguiente comando:
+2. Busca el archivo con nombre
    ```bash
-   LennySofas.jar
+   TimeFlow.apk
+
+## 🤓 Documentacion
+- Dentro del proyecto hay una carpeta llamada docs hay encontraras toda la documentacion realacionada con TimeFlow
 
 ## 🏗️ Construido
 
