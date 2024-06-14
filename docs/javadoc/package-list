@@ -1,0 +1,12 @@
+$dokka.format:javadoc-v1
+$dokka.linkExtension:html
+$dokka.location:com.example.timeflow.Adapter/EventsAdapter.EventsViewHolder///PointingToDeclaration/com/example/timeflow/Adapter/EventsAdapter.EventsViewHolder.html
+$dokka.location:com.example.timeflow.Adapter/EventsAdapter.OnItemClickListener///PointingToDeclaration/com/example/timeflow/Adapter/EventsAdapter.OnItemClickListener.html
+$dokka.location:com.example.timeflow.Adapter/NotepadAdapter.NotepadViewHolder///PointingToDeclaration/com/example/timeflow/Adapter/NotepadAdapter.NotepadViewHolder.html
+$dokka.location:com.example.timeflow.Adapter/NotepadAdapter.OnItemClickListener///PointingToDeclaration/com/example/timeflow/Adapter/NotepadAdapter.OnItemClickListener.html
+com.example.timeflow
+com.example.timeflow.Adapter
+com.example.timeflow.Fragment
+com.example.timeflow.HelpersClass
+com.example.timeflow.Service
+

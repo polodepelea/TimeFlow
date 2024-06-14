@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationBarView navigationBarView;
     private MaterialToolbar topAppBar;
     private SearchView searchView;
-    private static final String PDF_URL = "https://drive.google.com/file/d/1K_snecV3HihX_W9U4Dvh8HKmyVIpW1_N/view?usp=sharing";
+    private static final String PDF_URL = "https://drive.google.com/file/d/1spCLm6iNOWwNKLKk3fq5kdRyKM_gkOmL/view?usp=sharing";
     private String userId;
 
     @Override
