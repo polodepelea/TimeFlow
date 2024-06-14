@@ -15,7 +15,7 @@ El objetivo del proyecto era combinar las funcionalidades de diversas aplicacion
   
 ## 🌐 Despliegue
 
-### Windows
+### Android
 
 Para ejecutar la aplicación en un entorno Android, sigue estos pasos:
 
