@@ -21,28 +21,28 @@ Para ejecutar la aplicación en un entorno Android, sigue estos pasos:
 
 1. Descarge el proyecto.
 
-2. Busca el archivo con nombre
+2. Busca el archivo con nombre:
    ```bash
    TimeFlow.apk
 
 ## 🤓 Documentacion
-- Dentro del proyecto hay una carpeta llamada docs hay encontraras toda la documentacion realacionada con TimeFlow
+- Dentro del proyecto hay una carpeta llamada "docs" hay encontraras toda la documentacion realacionada con TimeFlow.
 
 ## 🏗️ Construido
 
-- Java 17
+- Java 17.
 
 ## 📅 Versionado
 
-- Version 1.0
+- Version 1.0.
 
 ## ⚖️ Licencia
 
-- Boost Software License - Version 1.0
+- Boost Software License - Version 1.0.
 
-## 👑 Autores
+## 👑 Autor
 
-- Lenny López Pérez
+- Lenny López Pérez.
 
 ## 📬 Contacto
 
